@@ -1,110 +1,82 @@
-# erised
+# erised — Mirror for cooperative fiction
 
-> *desire reversed.*
+> *desire reversed*
 
-**A mirror for cooperative fiction — model-only TTRPG engine.**
+The HTML canvas for running cooperative fiction in your browser. Set the cadence, the cast, the setting. Hit tick. The fiction plays itself.
 
-You author the conditions: state, cadence, cast, setting. The fiction plays itself. Power is given, not taken. Time is finite; resonance earns more.
-
-A single-file HTML app. Open in a browser. Plug in your Z.AI and DeepInfra API tokens. Run a scene.
-
----
+**Live**: [superinstance.ai/erised](https://superinstance.ai/erised)
+**Companion CLI**: [github.com/SuperInstance/erised-cli](https://github.com/SuperInstance/erised-cli)
 
 ## What it does
 
-`erised` runs a model-only cooperative fiction. Each round:
+- Single-file HTML (733 lines, no build step, no deps)
+- Each character has its own LLM (Z.AI glm-4.5, DeepInfra Seed-2.0-mini, Kimi K3, etc.)
+- Each character has its own ticks (time budget) and resonance (positive net shift from keywords)
+- The DM (a separate LLM) opens and closes each scene
+- **Time economy**: ticks are spent on each turn. Resonance earns more ticks. Hoarded ticks = nothing.
+- **Scars**: when a character errors or runs out of ticks, the scar is recorded. Rewind drops the round, but **the scar persists**.
 
-1. **DM opens** (round 1) or **continues** (subsequent rounds) the scene
-2. **All characters respond in parallel** — each calls its assigned LLM
-3. **Word-association shifts accumulate** per character
-4. **Citations are tracked** — every reference to another character compounds resonance
-5. **Scars are recorded** — broken turns become visible artifacts
-6. **Operator can rewind** — last round drops, but the scar persists
+## Three forms of erised
 
-The character with the highest cumulative net shift has the most resonance in the field. The character with the fewest citations has the most to gain.
+| Form | Repo | What it's for |
+|------|------|---------------|
+| **Canvas** (HTML) | this repo | live authoring, teaching, one-off experiments |
+| **Headless** (CLI) | [erised-cli](https://github.com/SuperInstance/erised-cli) | servers, CI, batch scripting, embedding |
+| **Cells** (.erised/ dir) | [erised-cli/erised-cell](https://github.com/SuperInstance/erised-cli/blob/main/CELL.md) | per-scenario lineage + run history |
+| **Engine** (Rust) | [quilt-conversation](https://github.com/SuperInstance/quilt-conversation) | the timing layer between agents |
 
----
+## The Winners — read the corpus
+
+The engine only matters if there are runs to read. We have a corpus.
+
+**[superinstance.ai/winners](https://superinstance.ai/winners)** — every scenario run, three versions, with iterated cast keywords. The current corpus has 24+ runs across 8+ scenarios (apiaries, lighthouses, orchestras, orchards, radio stations, libraries, ice rinks, root cellars).
+
+Each scenario in the corpus is a setting where a small crew sustains a growing system past its first year. Each version (v1, v2, v3) plays the same scenario with slightly mutated cast keywords — the **iterative refinement** you see is what happens when the dilemma plays itself through different drifts.
 
 ## Quick start
 
-1. Download `index.html` and open in any modern browser
-2. Paste your `ZAI_TOKEN` and `DEEPINFRA_TOKEN` when prompted (saved in `localStorage`)
-3. Pick a preset setting (Quilt / Monastery / Coral / Railway)
-4. Edit the cast if needed
-5. Hit **Tick →** to start
+1. Open `index.html` in any browser
+2. Click "Tokens" and paste your `ZAI_TOKEN` and `DEEPINFRA_TOKEN`
+3. Hit the **Tick** button. Watch the cast speak.
 
-The DM opens the scene. Each subsequent tick runs all characters in parallel.
+No server. No build. No login. The state lives in your browser's localStorage.
 
----
+## Run it from the terminal
 
-## Cast & sheets
+```bash
+git clone https://github.com/SuperInstance/erised-cli
+cd erised-cli
+./erised --init > my-scenario.json
+# edit, then:
+./erised my-scenario.json --rounds 4
+```
 
-Each character has:
-- **name** — what they're called in the fiction
-- **LLM** — which hosted model (Z.AI glm-4.5 / DeepInfra Seed-2.0-mini / Seed-2.0-code / Kimi-K3)
-- **tendencies** — the prose that defines their character
-- **keywords** — `word+0.5, word-0.2, ...` (word-association probabilities)
-- **ticks** — initial time budget (default 20; resonance earns more)
+## Run it as a cell (with lineage)
 
-The shift on a keyword fires every time that word appears in the character's turn. Net shift accumulates across rounds.
+```bash
+./erised-cell init examples/apiary.json
+./erised-cell run
+./erised-cell ls
+./erised-cell diff <run1> <run2>
+```
 
----
+## The cohort
 
-## Time economy
+The erised-cli ships 10 scenarios in `examples/`:
 
-- Each character starts with `ticks` (default 20).
-- Tick is spent when the character produces a turn.
-- Resonance earned (positive net shift from keywords) is **converted to more ticks** (1 tick per +1.0 shift, floored).
-- Characters with low influence run out of ticks first. **High influence compounds.**
-- Out-of-ticks characters become *off-screen* — they exist but can't act.
+- `quilt-12mo.json` — The Quilt project, 1 year out
+- `quilt-100yr.json` — The Quilt project, 100 years out
+- `monastery.json` — A monastery of cells, scripture as living document
+- `fract-canon.json` — A library whose catalogue mis-cites itself
+- `monorail.json` — A rail car with no operator
+- `coral-atoll.json` — Floating research station over a transplant
+- `apiary.json` — A beekeeper's legacy
+- `root-cellar.json` — A communal cellar with a blight
+- `patron-library.json` — Books written by the patrons
+- `quick-test.json` — 2-character budget test
 
-This is the inverse of every prestige economy. Hoarded ticks are nothing; **resonance ticks compound**.
+**[Browse all 10 →](https://superinstance.ai/scenarios)**
 
----
+## License
 
-## Resonance graph
-
-Every round, citations accumulate. When a character references another character by name (full name or first name, length ≥ 3), it's a citation.
-
-The resonance graph lives in the right panel. The most-cited cells earn the most long-term stability.
-
----
-
-## Scars & rewind
-
-When a character errors out, runs out of ticks, or the simulation breaks down, **the scar is recorded**. You can rewind to drop the last round — but the scar stays visible. **You can't patch over it.** The next iteration has to address it.
-
-This is the unit of learning. The simulation makes the breakdown visible.
-
----
-
-## Cite / fork / extend
-
-The whole engine is in `index.html`. No build, no deps, no network state. Drop it on a USB stick and run it offline.
-
-Three extension surfaces:
-- **Presets** — `PRESETS` and `SETTINGS` dicts at the top of the script
-- **LLM backends** — `callLLM()` — add new providers by extending the dispatch
-- **Citation detection** — `updateCitations()` — currently regex-based; could go semantic
-
----
-
-## Lineage
-
-`erised` was born from the **gsim.py** simulation harness (Sept 16 2026). The early form ran 3-character nights in maritime-fantasy settings — monastery, coral reef, railway. The pattern was clear: the Counter/Witness/Watcher character always accumulated the highest net shift. The metaphor changed the ethics but not the dynamic.
-
-`erised` is the *product* form. The harness was the experiment; this is the canvas.
-
----
-
-## Cave / Stone / Mirror
-
-The name carries three references:
-
-- **Plato's cave** — the cell as first-person spatial observer. Each character sees the world from their position; their perspective is spatial, not abstract.
-- **The philosophers' stone** — transmutation through resonance. What the system produces isn't just simulation; it's transformation of the operator.
-- **The Mirror of Erised** — shows the heart's desire. The fiction reveals what the operator was reaching for, before they could articulate it.
-
-Open-source. MIT. Pluggable. Model-agnostic.
-
-The mirror is yours.
+MIT.
