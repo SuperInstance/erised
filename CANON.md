@@ -6,7 +6,7 @@ state: active
 family: applications
 vessel: unattributed
 born_from: []
-feeds: []
+feeds: [erised-cli]
 owed_by: []
 canonical_docs: [README.md, index.html]
 ledger: git-log
